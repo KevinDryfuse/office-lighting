@@ -11,6 +11,10 @@ int blue = 0;
 uint32_t currentColor = strip.Color(red, green, blue);
 int currentBrightness = 50;
 boolean isStripOn = false;
+int brightnessJumpAmount = 10;
+int colorJumpAmount = 10;
+int defaultCycles = 5;
+
 
 // 4x4 Membrane Keypad
 const byte ROWS = 4; //four rows
@@ -64,7 +68,67 @@ void loop() {
       blue = 0;
       green = 255;
       currentColor = strip.Color(red, green, blue);
-    }  
+    }
+        if (customKey == 'D') {
+      Serial.println("Turning lights off");
+      isStripOn = false;
+    }
+    if (customKey == '#') {
+      currentBrightness = changeValue("up", currentBrightness, brightnessJumpAmount);
+      Serial.println("Turning up brightness to " + String(currentBrightness));
+    }
+    if (customKey == '0') {
+      Serial.println("Turning brightness to max");
+      currentBrightness = 255;
+    }
+    if (customKey == '*') {
+      currentBrightness = changeValue("down", currentBrightness, brightnessJumpAmount);
+      Serial.println("Turning down brightness to " + String(currentBrightness));
+    }
+    if (customKey == '1') {
+      Serial.println("Changing RGB value to (" + String(red) + ", " + String(green) + ", " + String(blue) + ")");
+      isStripOn = true;  
+      red = changeValue("up", red, colorJumpAmount);
+      currentColor = strip.Color(red, green, blue);
+    }
+    if (customKey == '4') {
+      Serial.println("Changing RGB value to (" + String(red) + ", " + String(green) + ", " + String(blue) + ")");
+      isStripOn = true;  
+      red = changeValue("down", red, colorJumpAmount);
+      currentColor = strip.Color(red, green, blue);
+    }
+    if (customKey == '2') {
+      Serial.println("Changing RGB value to (" + String(red) + ", " + String(green) + ", " + String(blue) + ")");
+      isStripOn = true;  
+      green = changeValue("up", green, colorJumpAmount);
+      currentColor = strip.Color(red, green, blue);
+    }
+    if (customKey == '5') {
+      Serial.println("Changing RGB value to (" + String(red) + ", " + String(green) + ", " + String(blue) + ")");
+      isStripOn = true;  
+      green = changeValue("down", green, colorJumpAmount);
+      currentColor = strip.Color(red, green, blue);
+    }
+    if (customKey == '3') {
+      Serial.println("Changing RGB value to (" + String(red) + ", " + String(green) + ", " + String(blue) + ")");
+      isStripOn = true;  
+      blue = changeValue("up", blue, colorJumpAmount);
+      currentColor = strip.Color(red, green, blue);
+    }
+    if (customKey == '6') {
+      Serial.println("Changing RGB value to (" + String(red) + ", " + String(green) + ", " + String(blue) + ")");
+      isStripOn = true;  
+      blue = changeValue("down", blue, colorJumpAmount);
+      currentColor = strip.Color(red, green, blue);
+    }
+    if (customKey == '7') {
+      Serial.println("Rainbow Cycle for " + String(defaultCycles) + " cycles");
+      rainbowCycle(10, 5);
+    }
+    if (customKey == '8') {
+      Serial.println("Fade in and out for " + String(defaultCycles) + " cycles");
+      fadeInOut(red, green, blue, 5, "slow");
+    }
   }
   
   if (action) {
@@ -79,6 +143,33 @@ void loop() {
 }
 
 
+int changeValue(String dir, int value, int jump) {
+
+  if (dir == "up") {
+    if (value < 255) {
+      if (value + jump >= 255) {
+        value = 255;
+      }
+      else {
+        value = value + jump;
+      }  
+   }
+  }
+  else {
+    if (value > 0) {
+      if (value - jump <= 0) {
+        value = 0;
+      }
+      else {
+        value = value - jump;
+      }  
+   }
+  }
+  
+  return value;
+}
+
+
 void rainbowCycle(uint8_t wait, int cycles) {
   
   for(int c = 0; c <= cycles; c++) {
@@ -90,6 +181,37 @@ void rainbowCycle(uint8_t wait, int cycles) {
         
       }
       strip.show();
+      delay(wait);
+    }
+  }
+}
+
+void fadeInOut(int red, int green, int blue, int cycles, String howFast){
+  float r, g, b;
+
+  int wait = 0;
+  if (howFast = "slow") {
+    wait = 10;
+  }
+  else if (howFast = "really slow") {
+    wait = 100;
+  } 
+
+  for(int c = 0; c <= cycles; c++) {
+  
+    for(int k = 0; k < 256; k=k+1) { 
+      r = (k/256.0)*red;
+      g = (k/256.0)*green;
+      b = (k/256.0)*blue;
+      setStripToSolidColor(strip.Color(r, g, b), currentBrightness);
+      delay(wait);
+    }
+       
+    for(int k = 255; k >= 0; k=k-2) {
+      r = (k/256.0)*red;
+      g = (k/256.0)*green;
+      b = (k/256.0)*blue;
+      setStripToSolidColor(strip.Color(r, g, b), currentBrightness);
       delay(wait);
     }
   }
